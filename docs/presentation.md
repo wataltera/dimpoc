@@ -6,31 +6,34 @@ date: November 2025
 
 # dimpoc — Data Sanitization POC
 
-**Goal:** Demonstrate annotation-driven sanitization and validation of string fields in C# to reduce injection/XSS risk and make data-safe for downstream processing.
+**Goal:** Demonstrate annotation-driven sanitization and validation of C# string fields to reduce injection/XSS risk and make data safe for downstream processing.
 
-_Speaker note:_ Quick intro / 30s explanation of why field-level sanitization is useful beyond request-parameter validators.
+_Speaker note:_ Quick intro / 30s explanation of why field-level sanitization is useful beyond request-parameter validators.  Mention zero trust and
+need for validation when data crosses trust boundary.
 
 ---
 
 ## Problem Statement
 
-- Security scanners find many injection/XSS opportunities in legacy apps.
-- Validation libraries often operate only on HTTP request parameters, not arbitrary object fields.
-- Fields may come from DBs, files, or external systems and still carry attack payloads.
+- Our scanners found many data injection/XSS vulnerabilities.
+- XSS has > 30,000 CVEs; SQL injection > 14,000 CVEs
+- Validation libraries often operate only on HTTP request parameters, not object fields.
+- Attack payloads may come from DBs, files, or external systems.
+- Should validate whenever data crosses a trust boundary.
 
-_Speaker note:_ Emphasize risk, compliance exposure, and remediation backlog pain.
+_Speaker note:_ Emphasize risk, exposure, and remediation backlog.  Common Vulnerabilities and Exposures (CVE) - catalog entry for a bug that could be exploited—used by developers, security teams, and attackers.  AI can code an exploit from the CVE.
 
 ---
 
 ## Our Approach (POC)
 
-- Use small C# attributes on string fields to encode *semantic types* (e.g., `TIN`, `PAN`, `Tel`, `USNUM`).
-- A central processor inspects annotated fields and applies per-type handlers:
+- Use C# annotations on string fields to encode *semantic types* (e.g., `TIN`, `PAN`, `Tel`, `USNUM`).
+- Semantic library finds annotated fields and applies per-type handlers:
   - `Sanitize(object)` — strips attack characters and normalizes values
   - `Validate(object)` — lightweight checks (Luhn for PAN, length checks for TIN/Tel, numeric parse for USNUM)
 - Returns `FieldResults` with per-field `FieldResultItem` entries: name, empty, valid
 
-_Speaker note:_ This is low-friction for devs — annotate fields once, get consistent behavior across sources.
+_Speaker note:_ This is low-friction for devs — annotate fields once, get consistent behavior across sources.  We will disribute updates for new data types and new masking rules.  When will EU require masking phones?
 
 ---
 
@@ -54,21 +57,21 @@ _Placeholder:_ add screenshot(s) of console output here: `docs/screenshots/sanit
   - `FieldResults.cs` — result model
   - `Program.cs` — demo runner
 - Design choices:
-  - Simple, explicit attribute names for clarity in POC
-  - Handler-based or hashmap registry approach is ready as next step for scale
+  - Simple, explicit annotation names for clarity in POC
+  - Handler-based or hashmap registry approach is next step for scaling
 
-_Speaker note:_ Mention potential next steps: registry of handlers, masking, role-based redaction, async validation.
+_Speaker note:_ Potential next steps: registry of handlers, masking, role-based redaction (flag for can't be shown at all), hash map to hold handlers, everythingin one call, app can change flags to turn on steps.
 
 ---
 
 ## Business Benefits & Ask
 
 - Benefits:
-  - Reduces likelihood of SQLi/XSS from non-HTTP inputs
-  - Standardizes sanitization across apps
-  - Low developer friction — annotate fields; reuse handlers
+  - Reduces likelihood of SQL/XSS from non-HTTP inputs
+  - Standardizes sanitization / masking across apps
+  - Low developer friction — annotate fields; reuse handlers; get updates as requirements change
 - Ask / Request for Pilot Approval:
-  1. Approve a 4-week pilot integrating annotations into one critical service
+  1. Approve a pilot using annotations in one app
   2. Allocate 1-2 devs for implementation + 1 security SME for review
   3. Decide success criteria (reduction in high/critical findings, dev effort/time-to-fix)
 
@@ -92,9 +95,9 @@ _Speaker note:_ Provide rough estimate: small POC integration ~2-3 dev-days, pil
 ## Appendix: Quick sample code (Sanitize / Validate)
 
 ```csharp
-// Example attribute usage
+// Example annotation usage
 public class DemoData {
-  [TIN] public string SSN = "123-45-6789<script>";
+  [TIN] public string SSN = "123-45-6789";
   [PAN] public string Card = "4111 1111 1111 1111";
 }
 
