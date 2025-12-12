@@ -6,6 +6,12 @@ POC project demonstrating annotation-driven sanitization and validation of strin
 
 Targets: net9.0 (auto-detected from environment where this POC was created).
 
+### Development Setup
+
+For help setting up GitHub Copilot in Visual Studio Code, see [GitHub Copilot Setup Guide](docs/github-copilot-setup.md).
+
+### Building and Running
+
 How to build and run:
 
 ```powershell
